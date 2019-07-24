@@ -16,20 +16,20 @@ app.scripts.config.serve_locally = True
 
 df = pd.read_csv('~/code/intenergy/all_energy_statistics_2019_V2.csv')
 
-values = sorted(list(df.Year.unique()))[1:]
+values = sorted(list(df.Year.unique()))[1:-1]
 labels = [str(x) for x in values]
 
 options = []
 for n in range(len(values)):
-	options.append(dict([('label',labels[n]), ('value',values[n])]))
+    options.append(dict([('label',labels[n]), ('value',values[n])]))
 
 
 app.layout = html.Div([
     html.H1('International Energy Statistics', style={
             'textAlign': 'center', 'margin': '16px 10', 'fontFamily': 'system-ui'}),
 
-	html.Div(
-		[dcc.Dropdown(
+    html.Div(
+        [dcc.Dropdown(
         id='my-dropdown',
         options=options,
         value=2016
@@ -46,23 +46,60 @@ app.layout = html.Div([
     [dash.dependencies.Input('my-dropdown', 'value')]
     )
 
+
 def update_output(value):
-	totals= pd.DataFrame(
+    
+
+    largest = pd.DataFrame(
     df[
         (df['Year']==value) &
         (df['Flow_Category']=='Final consumption')
         ].groupby(by=['Country or Area'])['Quantity_TJ'].sum()
+        ).nlargest(30,'Quantity_TJ')
+
+    smallest = pd.DataFrame(
+    df[
+        (df['Year']==value) &
+        (df['Flow_Category']=='Final consumption')
+        ].groupby(by=['Country or Area'])['Quantity_TJ'].sum()
+        ).nsmallest(5,'Quantity_TJ')
+
+    canada = pd.DataFrame(
+    df[
+        (df['Year']==value) &
+        (df['Flow_Category']=='Final consumption') &
+        (df['Country or Area']=='Canada')
+        ].groupby(by=['Country or Area'])['Quantity_TJ'].sum()
         )
+    
+    totals= pd.concat(objs = [largest, smallest])
 
-	return [dcc.Graph(
-	        id='Total Energy Consumption By Year',
-	        figure={
-	            'data': [
-	                {'x': totals.index, 'y': totals['Quantity_TJ'], 'type': 'bar', 'name': 'y1 Total Energy'}
-	            ],
-	            'layout': {
+    def set_color(x):
+        if(x == 'Canada'):
+            return "red"
+        else:
+            return "blue"
 
-	                'title': 'Total Energy Consumption (TJ)'
+    return [dcc.Graph(
+            id='Total Energy Consumption By Year',
+            figure={
+                'data': [
+                    {'x': totals.index,
+                     'y': totals['Quantity_TJ'], 
+                    'type': 'bar', 
+                    'orientation':'v',
+                    'name': 'Annual Energy',
+                    'transforms': [{
+                        'type': 'sort',
+                        'target': 'y',
+                        'order': 'descending'
+                        }],
+                    'marker': dict(color=list(map(set_color,totals.index)))
+                    },
+                ],
+                'layout': {
+
+                    'title': 'Total Energy Consumption (TJ)'
                 }
             }
         )
