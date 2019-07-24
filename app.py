@@ -3,6 +3,7 @@ import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
 import pandas as pd
+import urllib, json
 
 from dash.dependencies import Input, Output, State
 
@@ -13,34 +14,60 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 
-data = pd.read_csv('~/code/intenergy/all_energy_statistics_2019.csv')
+df = pd.read_csv('~/code/intenergy/all_energy_statistics_2019_V2.csv')
 
-# just for testing! have to convert units!
-totals1990 = pd.DataFrame(data[data['Year']==1990].groupby(by=['Country or Area'])['Quantity'].sum())
-totals2016 = pd.DataFrame(data[data['Year']==2016].groupby(by=['Country or Area'])['Quantity'].sum())
+values = sorted(list(df.Year.unique()))[1:]
+labels = [str(x) for x in values]
 
-
-import urllib, json
+options = []
+for n in range(len(values)):
+	options.append(dict([('label',labels[n]), ('value',values[n])]))
 
 
 app.layout = html.Div([
     html.H1('International Energy Statistics', style={
             'textAlign': 'center', 'margin': '16px 10', 'fontFamily': 'system-ui'}),
-	html.Div([
-	    dcc.Graph(
-	        id='example-graph',
+
+	html.Div(
+		[dcc.Dropdown(
+        id='my-dropdown',
+        options=options,
+        value=2016
+        ),
+    ]),
+
+    html.Div(
+        id='output-container',
+        )
+    ])
+
+@app.callback(
+    dash.dependencies.Output('output-container', 'children'),
+    [dash.dependencies.Input('my-dropdown', 'value')]
+    )
+
+def update_output(value):
+	totals= pd.DataFrame(
+    df[
+        (df['Year']==value) &
+        (df['Flow_Category']=='Final consumption')
+        ].groupby(by=['Country or Area'])['Quantity_TJ'].sum()
+        )
+
+	return [dcc.Graph(
+	        id='Total Energy Consumption By Year',
 	        figure={
 	            'data': [
-	                {'x': totals1990.index, 'y': totals1990['Quantity'], 'type': 'bar', 'name': '1990 Total Energy'},
-	                {'x': totals2016.index, 'y': totals2016['Quantity'], 'type': 'bar', 'name': '2016 Total Energy'},
+	                {'x': totals.index, 'y': totals['Quantity_TJ'], 'type': 'bar', 'name': 'y1 Total Energy'}
 	            ],
 	            'layout': {
-	                'title': 'Example Graph - Total Energy 1990 vs 2016 (units tbd)'
+
+	                'title': 'Total Energy Consumption (TJ)'
                 }
             }
         )
-    ])
-])
+    ]
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
