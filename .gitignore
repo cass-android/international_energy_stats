@@ -1,9 +1,7 @@
+archive/
 
 # csv data
 *.csv
-
-# jupyter notebooks
-.ipynb
 
 # Environments
 .env
