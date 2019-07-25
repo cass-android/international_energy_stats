@@ -7,6 +7,7 @@ import urllib, json
 
 from dash.dependencies import Input, Output, State
 from prep import * 
+from graphs import *
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -26,8 +27,8 @@ for n in range(len(year_values)):
         ('value',year_values[n])]))
 
 # measures
-measure_values = ['Quantity_TJ','TJ_per_capita', 'TJ_per_USD_GDP']
-measure_labels = ['Total Energy','Per Capita', 'Per GDP (USD)']
+measure_values = ['TJ_per_capita', 'TJ_per_USD_GDP','Quantity_TJ']
+measure_labels = ['Per Capita','Per GDP (USD)','Total Energy']
 
 measures = []
 for n in range(len(measure_values)):
@@ -35,6 +36,15 @@ for n in range(len(measure_values)):
         ('value',measure_values[n])]))
 
 # countries
+country_values = sorted(list(df['Country or Area'].unique()))[1:-1]
+country_labels = [str(x) for x in country_values]
+
+countries = []
+for n in range(len(country_values)):
+    countries.append(dict([('label',country_labels[n]), 
+        ('value',country_values[n])]))
+
+# LAYOUT
 
 app.layout = html.Div([
     dcc.Input(id='my-id', value='initial value', type='text'),
@@ -43,12 +53,11 @@ app.layout = html.Div([
             'textAlign': 'center', 'margin': '16px 10', 'fontFamily': 'system-ui'
             }),
 
-
     html.Div(
         [dcc.Dropdown(
         id='measure_dropdown',
         options=measures,
-        value='Quantity_TJ'
+        value='TJ_per_capita'
             ),
         ]),
     dcc.Tabs(id="tabs", children=[
@@ -77,17 +86,27 @@ app.layout = html.Div([
         dcc.Tab(label='1990-2016 Trends', children=[
             html.Div(
                 dcc.Dropdown(
-                id='er_dropdown',
-                options=years,
-                value=2016
+                id='country_dropdown',
+                options=countries,
+                value='United States'
                     ),
                 ),
+            html.Div(
+                id='graph4-container'
+                ),
 
+            html.Div(
+                id='graph5-container'
+                ),
+
+            html.Div(
+                id='graph6-container'
+                ),
             ])
         ]),
-
     ])
 
+# CALLBACKS
 
 @app.callback(
     dash.dependencies.Output(component_id='my-div', component_property='children'),
@@ -95,7 +114,7 @@ app.layout = html.Div([
     )
 
 def test(value):
-    return(str(type(df['Year'][0])))
+    return(str(totals_con.head(1)))
 
 @app.callback(
     dash.dependencies.Output('graph1-container', 'children'),
@@ -142,6 +161,7 @@ def update_graph1(input_year, input_measure):
             }
         ),
     ]
+
 
 @app.callback(
     dash.dependencies.Output('graph2-container', 'children'),
@@ -235,7 +255,122 @@ def update_graph3(input_year, input_measure):
             }
         ),
     ]
+@app.callback(
+    dash.dependencies.Output('graph4-container', 'children'),
+    [dash.dependencies.Input('country_dropdown', 'value'),
+    dash.dependencies.Input('measure_dropdown', 'value')]
+    )
 
+def update_graph4(input_country, input_measure):
+    
+    x = totals_con[totals_con['Country or Area']==input_country].sort_values(by='Year')['Year']
+    y = totals_con[totals_con['Country or Area']==input_country].sort_values(by='Year')[input_measure]
 
+    x2 = totals_con[totals_con['Country or Area']=='Canada'].sort_values(by='Year')['Year']
+    y2 = totals_con[totals_con['Country or Area']=='Canada'].sort_values(by='Year')[input_measure]
+
+    return [
+        dcc.Graph(
+            id='Energy Consumption Trends',
+            figure={
+                'data': [
+                    {'x': x,
+                     'y': y, 
+                    'type': 'scatter', 
+                    'orientation':'v',
+                    'name': 'Selected Country\'s Consumption',
+                    },
+                    {'x': x2,
+                    'y': y2, 
+                    'type': 'scatter', 
+                    'orientation':'v',
+                    'name': 'Canada\'s Consumption',
+                    },
+                ],
+                'layout': {
+                    'title': 'Energy Consumption'
+                }
+            }
+        ),
+    ]
+
+@app.callback(
+    dash.dependencies.Output('graph5-container', 'children'),
+    [dash.dependencies.Input('country_dropdown', 'value'),
+    dash.dependencies.Input('measure_dropdown', 'value')]
+    )
+
+def update_graph5(input_country, input_measure):
+
+    x = totals_imp[totals_imp['Country or Area']==input_country].sort_values(by='Year')['Year']
+    y = totals_imp[totals_imp['Country or Area']==input_country].sort_values(by='Year')[input_measure]
+
+    x2 = totals_imp[totals_imp['Country or Area']=='Canada'].sort_values(by='Year')['Year']
+    y2 = totals_imp[totals_imp['Country or Area']=='Canada'].sort_values(by='Year')[input_measure]
+
+    return [
+        dcc.Graph(
+            id='Energy Imports Trends',
+            figure={
+                'data': [
+                    {'x': x,
+                     'y': y, 
+                    'type': 'scatter', 
+                    'orientation':'v',
+                    'name': 'Selected Country\'s Imports',
+                    },
+                    {'x': x2,
+                    'y': y2, 
+                    'type': 'scatter', 
+                    'orientation':'v',
+                    'name': 'Canada\'s Imports',
+                    },
+                ],
+                'layout': {
+                    'title': 'Energy Imports'
+                }
+            }
+        ),
+    ]
+
+@app.callback(
+    dash.dependencies.Output('graph6-container', 'children'),
+    [dash.dependencies.Input('country_dropdown', 'value'),
+    dash.dependencies.Input('measure_dropdown', 'value')]
+    )
+
+def update_graph6(input_country, input_measure):
+
+    x = totals_exp[totals_exp['Country or Area']==input_country].sort_values(by='Year')['Year']
+    y = totals_exp[totals_exp['Country or Area']==input_country].sort_values(by='Year')[input_measure]
+
+    x2 = totals_exp[totals_exp['Country or Area']=='Canada'].sort_values(by='Year')['Year']
+    y2 = totals_exp[totals_exp['Country or Area']=='Canada'].sort_values(by='Year')[input_measure]
+
+    return [
+        dcc.Graph(
+            id='Energy Exports Trends',
+            figure={
+                'data': [
+                    {'x': x,
+                     'y': y, 
+                    'type': 'scatter', 
+                    'orientation':'v',
+                    'name': 'Selected Country\'s Exports',
+                    },
+                    {'x': x2,
+                    'y': y2, 
+                    'type': 'scatter', 
+                    'orientation':'v',
+                    'name': 'Canada\'s Exports',
+                    },
+                ],
+                'layout': {
+                    'title': 'Energy Exports'
+                }
+            }
+        ),
+    ]
+# LAUNCH APP
 if __name__ == '__main__':
     app.run_server(debug=True)
