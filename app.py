@@ -15,22 +15,26 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.css.config.serve_locally = True
 app.scripts.config.serve_locally = True
 
-# for dropdown menu - years
-values = sorted(list(df.Year.unique()))[1:-1]
-labels = [str(x) for x in values]
+# DROPDOWN MENU OPTIONS
+# years
+year_values = sorted(list(df.Year.unique()))[1:-1]
+year_labels = [str(x) for x in year_values]
 
-options = []
-for n in range(len(values)):
-    options.append(dict([('label',labels[n]), ('value',values[n])]))
+years = []
+for n in range(len(year_values)):
+    years.append(dict([('label',year_labels[n]), 
+        ('value',year_values[n])]))
 
-# for dropdown menu - measures
-values2 = ['Quantity_TJ','TJ_per_capita', 'TJ_per_USD_GDP']
-labels2 = ['Total Energy','Per Capita', 'Per GDP (USD)']
+# measures
+measure_values = ['Quantity_TJ','TJ_per_capita', 'TJ_per_USD_GDP']
+measure_labels = ['Total Energy','Per Capita', 'Per GDP (USD)']
 
-options2 = []
-for n in range(len(values2)):
-    options2.append(dict([('label',labels2[n]), ('value',values2[n])]))
+measures = []
+for n in range(len(measure_values)):
+    measures.append(dict([('label',measure_labels[n]), 
+        ('value',measure_values[n])]))
 
+# countries
 
 app.layout = html.Div([
     dcc.Input(id='my-id', value='initial value', type='text'),
@@ -39,35 +43,51 @@ app.layout = html.Div([
             'textAlign': 'center', 'margin': '16px 10', 'fontFamily': 'system-ui'
             }),
 
-    html.Div(
-        [dcc.Dropdown(
-        id='year_dropdown',
-        options=options,
-        value=2016
-        ),
-    ]),
 
     html.Div(
         [dcc.Dropdown(
         id='measure_dropdown',
-        options=options2,
+        options=measures,
         value='Quantity_TJ'
-        ),
-    ]),
+            ),
+        ]),
+    dcc.Tabs(id="tabs", children=[
+        dcc.Tab(label='Country Rankings', children=[
+            html.Div(
+                dcc.Dropdown(
+                id='year_dropdown',
+                options=years,
+                value=2016
+                    ),
+                ),
 
+            html.Div(
+                id='graph1-container'
+                ),
 
-    html.Div(
-        id='graph1-container'
-        ),
+            html.Div(
+                id='graph2-container'
+                ),
 
-    html.Div(
-        id='graph2-container'
-        ),
+            html.Div(
+                id='graph3-container'
+                ),
 
-    html.Div(
-        id='graph3-container'
-        ),
+            ]),
+        dcc.Tab(label='1990-2016 Trends', children=[
+            html.Div(
+                dcc.Dropdown(
+                id='er_dropdown',
+                options=years,
+                value=2016
+                    ),
+                ),
+
+            ])
+        ]),
+
     ])
+
 
 @app.callback(
     dash.dependencies.Output(component_id='my-div', component_property='children'),
