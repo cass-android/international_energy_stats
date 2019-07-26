@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 import pandas as pd
 import urllib, json
@@ -9,7 +10,7 @@ from dash.dependencies import Input, Output, State
 from prep import * 
 from graphs import *
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', 'dbc.themes.BOOTSTRAP']
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -47,7 +48,6 @@ for n in range(len(country_values)):
 # LAYOUT
 
 app.layout = html.Div([
-    html.Div(id='my-div'),
     html.H1('Canada\'s International Energy Presence', style={
             'textAlign': 'center', 
             'margin': '14px 10', 
@@ -71,7 +71,7 @@ app.layout = html.Div([
             options=measures,
             value='TJ_per_capita'
                 ),
-            ], style={'width': '20%', 
+            ], style={'width': '20%',
             'display':'inline-block', 
             'font-size':'150%',
             'vertical-align': 'middle',
@@ -82,42 +82,103 @@ app.layout = html.Div([
         'margin-left':'25%'
         }),
 
-
-
     dcc.Tabs(id="tabs", children=[
         dcc.Tab(label='Country Rankings', 
-            children=[
+            children=[               
                 html.Div(
-                    dcc.Dropdown(
-                    id='year_dropdown',
-                    options=years,
-                    value=2016,
-                     style={
-                    'width': '50%', 
-                    'font-size':'130%'
+                    id='columns',
+                    children=[
+                        html.Div(
+                            id='g0',
+                            className='one-fourth column',
+                            children=[
+                                html.Div([
+                                    dcc.Markdown(''), # text for 'Year' - removed:
+                                    ],
+                                     style={
+                                    'width': '50px', 
+                                    'font-size':'150%',
+                                    'display':'inline-block', 
+                                    'vertical-align': 'middle',
+                                    'margin-left':'10px',
+                                    'text-align':'left',
+                                            }
+                                        ),
+                                html.Div([
+                                    dcc.Dropdown(
+                                    id='year_dropdown',
+                                    options=years,
+                                    value=2016
+                                    )],
+                                     style={
+                                    'width': '100px',
+                                    'font-size':'130%',
+                                    'vertical-align': 'middle',
+                                    'display':'inline-block',
+                                    'text-align':'left',
+                                            }
+                                        ),
+                                    ],
+                            style={
+                            'width':'10%',
+                            'padding': '0px',
+                            'margin':'0px',
+                            'background-color':'#FFFFFF',
+                            'height':'1000px'
                             }
                         ),
-                    ),
-                    html.Div(
-                        id='graph1-container'
-                        ),
-                    html.Div(
-                        id='graph2-container'
-                        ),
-                    html.Div(
-                        id='graph3-container'
-                        )],
-                ),
+
+                        html.Div(
+                            id='g1',
+                            className='one-fourth column',
+                            style={
+                            'width':'30%',
+                            'padding': '0px',
+                            'margin':'0px'
+                            }),
+                        html.Div(
+                            id='g2',
+                            className='one-fourth column',
+                             style={
+                             'width':'30%',
+                            'padding': '0px',
+                            'margin':'0px'
+                            }),
+                        html.Div(
+                            id='g3',
+                            className='one-fourth column',
+                            style={
+                            'width':'30%',
+                            'padding': '0px',
+                            'margin':'0px'
+                            })
+                        ], 
+                    className='row'
+
+                    )
+                ],
+            style={
+            'background-color':'#FFFFFF'
+            }
+            ),
 
         dcc.Tab(label='1990-2016 Trends', 
             children=[
-                html.Div(
+                html.Div([
                     dcc.Dropdown(
                     id='country_dropdown',
                     options=countries,
-                    value='United States'
+                    value='United States',
+                    style={
+                    'background-color': 'white',
+                    'width': '50%', 
+                    'font-size':'130%'
+                    }
                             ),
-                        ),
+                        ],                     
+                        style={
+                        'background-color': 'white'
+                        }),
                     html.Div(
                         id='graph4-container'
                         ),
@@ -128,21 +189,17 @@ app.layout = html.Div([
                         id='graph6-container'
                         )],
                 )
-        ],
+        ], style={
+        'background-color':'#FFFFFF'}
             ),
-    ])
+    ], style={
+        'background-color': '#CCE5FF'
+    })
 
 # CALLBACKS
 
 @app.callback(
-    dash.dependencies.Output(component_id='my-div', component_property='children'),
-    )
-
-def test(value):
-    return(str(totals_con.head(1)))
-
-@app.callback(
-    dash.dependencies.Output('graph1-container', 'children'),
+    dash.dependencies.Output('g1', 'children'),
     [dash.dependencies.Input('year_dropdown', 'value'),
     dash.dependencies.Input('measure_dropdown', 'value')]
     )
@@ -163,25 +220,33 @@ def update_graph1(input_year, input_measure):
 
     return [
         dcc.Graph(
-            id='Energy Consumption',
+            id='Consumption',
             figure={
                 'data': [
-                    {'x': largest_and_smallest['Country or Area'],
-                     'y': largest_and_smallest[input_measure], 
+                    {'x': largest_and_smallest[input_measure],
+                     'y': largest_and_smallest['Country or Area'],
                     'type': 'bar', 
-                    'orientation':'v',
+                    'orientation':'h',
                     'name': 'Annual Energy',
                     'transforms': [{
                         'type': 'sort',
-                        'target': 'y',
-                        'order': 'descending'
+                        'target': 'x',
+                        'order': 'ascending'
                         }],
                     'marker': dict(color=list(map(set_color,
                         largest_and_smallest['Country or Area'])))
                     },
                 ],
                 'layout': {
-                    'title': 'Energy Consumption (TJ)'
+                    'title': 'Consumption',
+                    'height':'1000',
+                    'margin': go.layout.Margin(
+                        l=160,
+                        r=10,
+                        b=100,
+                        t=100,
+                        pad=0
+                    ),
                 }
             }
         ),
@@ -189,7 +254,7 @@ def update_graph1(input_year, input_measure):
 
 
 @app.callback(
-    dash.dependencies.Output('graph2-container', 'children'),
+    dash.dependencies.Output('g2', 'children'),
     [dash.dependencies.Input('year_dropdown', 'value'),
     dash.dependencies.Input('measure_dropdown', 'value')]
     )
@@ -210,32 +275,40 @@ def update_graph2(input_year, input_measure):
 
     return [
         dcc.Graph(
-            id='Energy Imports',
+            id='Imports',
             figure={
                 'data': [
-                    {'x': largest_and_smallest['Country or Area'],
-                     'y': largest_and_smallest[input_measure], 
+                    {'x': largest_and_smallest[input_measure],
+                     'y': largest_and_smallest['Country or Area'], 
                     'type': 'bar', 
-                    'orientation':'v',
+                    'orientation':'h',
                     'name': 'Annual Energy',
                     'transforms': [{
                         'type': 'sort',
-                        'target': 'y',
-                        'order': 'descending'
+                        'target': 'x',
+                        'order': 'ascending'
                         }],
                     'marker': dict(color=list(map(set_color,
                         largest_and_smallest['Country or Area'])))
                     },
                 ],
                 'layout': {
-                    'title': 'Energy Imports (TJ)'
+                    'title': 'Imports',
+                    'height':'1000',
+                    'margin': go.layout.Margin(
+                        l=160,
+                        r=10,
+                        b=100,
+                        t=100,
+                        pad=0
+                    ),
                 }
             }
         ),
     ]
 
 @app.callback(
-    dash.dependencies.Output('graph3-container', 'children'),
+    dash.dependencies.Output('g3', 'children'),
     [dash.dependencies.Input('year_dropdown', 'value'),
     dash.dependencies.Input('measure_dropdown', 'value')]
     )
@@ -257,25 +330,33 @@ def update_graph3(input_year, input_measure):
 
     return [
         dcc.Graph(
-            id='Energy Exports',
+            id='Exports',
             figure={
                 'data': [
-                    {'x': largest_and_smallest['Country or Area'],
-                     'y': largest_and_smallest[input_measure], 
+                    {'x': largest_and_smallest[input_measure], 
+                     'y': largest_and_smallest['Country or Area'],
                     'type': 'bar', 
-                    'orientation':'v',
+                    'orientation':'h',
                     'name': 'Annual Energy',
                     'transforms': [{
                         'type': 'sort',
-                        'target': 'y',
-                        'order': 'descending'
+                        'target': 'x',
+                        'order': 'ascending'
                         }],
                     'marker': dict(color=list(map(set_color,
                         largest_and_smallest['Country or Area'])))
                     },
                 ],
                 'layout': {
-                    'title': 'Energy Exports (TJ)'
+                    'title': 'Exports',
+                    'height':'1000',
+                    'margin': go.layout.Margin(
+                        l=160,
+                        r=10,
+                        b=100,
+                        t=100,
+                        pad=0
+                    ),
                 }
             }
         ),
