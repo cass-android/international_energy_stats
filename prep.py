@@ -1,4 +1,5 @@
 import pandas as pd
+from numpy import inf
 import re
 
 # IMPORT DATA 
@@ -90,10 +91,16 @@ totals_exp = totals_exp.merge(
 # Add columns for TJ/capita, TJ/GDP
 totals_con['TJ_per_capita'] = totals_con['Quantity_TJ'] / totals_con['Population']
 totals_con['TJ_per_USD_GDP'] = totals_con['Quantity_TJ'] / totals_con['GDP_USD']
+totals_con['TJ_per_capita'] = totals_con['TJ_per_capita'].replace(to_replace= inf, value=0)
+totals_con['TJ_per_USD_GDP'] = totals_con['TJ_per_USD_GDP'].replace(to_replace= inf, value=0)
 
 totals_imp['TJ_per_capita'] = totals_imp['Quantity_TJ'] / totals_imp['Population']
 totals_imp['TJ_per_USD_GDP'] = totals_imp['Quantity_TJ'] / totals_imp['GDP_USD']
+totals_imp['TJ_per_capita'] = totals_imp['TJ_per_capita'].replace(to_replace= inf, value=0)
+totals_imp['TJ_per_USD_GDP'] = totals_imp['TJ_per_USD_GDP'].replace(to_replace= inf, value=0)
 
 totals_exp['TJ_per_capita'] = totals_exp['Quantity_TJ'] / totals_exp['Population']
 totals_exp['TJ_per_USD_GDP'] = totals_exp['Quantity_TJ'] / totals_exp['GDP_USD']
+totals_exp['TJ_per_capita'] = totals_exp['TJ_per_capita'].replace(to_replace= inf, value=0)
+totals_exp['TJ_per_USD_GDP'] = totals_exp['TJ_per_USD_GDP'].replace(to_replace= inf, value=0)
 

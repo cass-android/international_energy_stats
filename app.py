@@ -28,7 +28,7 @@ for n in range(len(year_values)):
 
 # measures
 measure_values = ['TJ_per_capita', 'TJ_per_USD_GDP','Quantity_TJ']
-measure_labels = ['Per Capita','Per GDP (USD)','Total Energy']
+measure_labels = ['Per Capita','Per GDP ','Total']
 
 measures = []
 for n in range(len(measure_values)):
@@ -47,70 +47,95 @@ for n in range(len(country_values)):
 # LAYOUT
 
 app.layout = html.Div([
-    dcc.Input(id='my-id', value='initial value', type='text'),
     html.Div(id='my-div'),
-    html.H1('International Energy Scoreboard', style={
-            'textAlign': 'center', 'margin': '16px 10', 'fontFamily': 'system-ui'
+    html.H1('Canada\'s International Energy Presence', style={
+            'textAlign': 'center', 
+            'margin': '14px 10', 
+            'fontFamily': 'system-ui',
             }),
-
-    html.Div(
-        [dcc.Dropdown(
-        id='measure_dropdown',
-        options=measures,
-        value='TJ_per_capita'
+    html.Div([
+        html.Div([
+            dcc.Markdown( "Energy Quantified:"),
+            ], style={'width': '30%', 
+            'font-size':'150%',
+            'display':'inline-block', 
+            'vertical-align': 'middle',
+            'horizontal-align': 'middle',
+            'text-align':'right',
+            'margin-right':'10px'}
             ),
-        ]),
+
+        html.Div([
+            dcc.Dropdown(
+            id='measure_dropdown',
+            options=measures,
+            value='TJ_per_capita'
+                ),
+            ], style={'width': '20%', 
+            'display':'inline-block', 
+            'font-size':'150%',
+            'vertical-align': 'middle',
+            'horizontal-align': 'middle',
+            'text-align':'left'}
+            ),
+        ], style={
+        'margin-left':'25%'
+        }),
+
+
+
     dcc.Tabs(id="tabs", children=[
-        dcc.Tab(label='Country Rankings', children=[
-            html.Div(
-                dcc.Dropdown(
-                id='year_dropdown',
-                options=years,
-                value=2016
+        dcc.Tab(label='Country Rankings', 
+            children=[
+                html.Div(
+                    dcc.Dropdown(
+                    id='year_dropdown',
+                    options=years,
+                    value=2016,
+                     style={
+                    'width': '50%', 
+                    'font-size':'130%'
+                            }
+                        ),
                     ),
+                    html.Div(
+                        id='graph1-container'
+                        ),
+                    html.Div(
+                        id='graph2-container'
+                        ),
+                    html.Div(
+                        id='graph3-container'
+                        )],
                 ),
 
-            html.Div(
-                id='graph1-container'
-                ),
-
-            html.Div(
-                id='graph2-container'
-                ),
-
-            html.Div(
-                id='graph3-container'
-                ),
-
-            ]),
-        dcc.Tab(label='1990-2016 Trends', children=[
-            html.Div(
-                dcc.Dropdown(
-                id='country_dropdown',
-                options=countries,
-                value='United States'
-                    ),
-                ),
-            html.Div(
-                id='graph4-container'
-                ),
-
-            html.Div(
-                id='graph5-container'
-                ),
-
-            html.Div(
-                id='graph6-container'
-                ),
-            ])
-        ]),
+        dcc.Tab(label='1990-2016 Trends', 
+            children=[
+                html.Div(
+                    dcc.Dropdown(
+                    id='country_dropdown',
+                    options=countries,
+                    value='United States'
+                            ),
+                        ),
+                    html.Div(
+                        id='graph4-container'
+                        ),
+                    html.Div(
+                        id='graph5-container'
+                        ),
+                    html.Div(
+                        id='graph6-container'
+                        )],
+                )
+        ],
+            ),
     ])
 
 # CALLBACKS
 
 @app.callback(
     dash.dependencies.Output(component_id='my-div', component_property='children'),
-    [dash.dependencies.Input(component_id='my-id', component_property='value')]
     )
 
 def test(value):
@@ -125,7 +150,7 @@ def test(value):
 def update_graph1(input_year, input_measure):
 
     largest = totals_con[totals_con['Year']==input_year
-    ].nlargest(40, input_measure)
+    ].nlargest(50, input_measure)
     smallest = totals_con[totals_con['Year']==input_year
     ].nsmallest(5, input_measure)
     largest_and_smallest = pd.concat(objs = [largest, smallest])
@@ -172,7 +197,7 @@ def update_graph1(input_year, input_measure):
 def update_graph2(input_year, input_measure):
 
     largest = totals_imp[totals_imp['Year']==input_year
-    ].nlargest(40, input_measure)
+    ].nlargest(50, input_measure)
     smallest = totals_imp[totals_imp['Year']==input_year
     ].nsmallest(5, input_measure)
     largest_and_smallest = pd.concat(objs = [largest, smallest])
@@ -218,7 +243,7 @@ def update_graph2(input_year, input_measure):
 def update_graph3(input_year, input_measure):
 
     largest = totals_exp[totals_exp['Year']==input_year
-    ].nlargest(40, input_measure)
+    ].nlargest(50, input_measure)
     smallest = totals_exp[totals_exp['Year']==input_year
     ].nsmallest(5, input_measure)
 
